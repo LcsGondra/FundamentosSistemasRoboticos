@@ -1,0 +1,347 @@
+--- Page 1 ---
+Fundamentos de Sistemas Robóticos com ROS 2
+Etapa 1
+Professor Mario Pego
+mario.pego@prof.infnet.edu.br
+
+--- Page 2 ---
+Cronograma
+
+--- Page 3 ---
+Histórico
+--- Page 25 ---
+Introdução
+Fundamentos da tecnologia de robôs
+--- Page 26 ---
+ROBÓTICA: CONCEITOS BÁSICOS
+• Robô: Máquina programável de propósito
+geral que tem existência no mundo físico e
+atua nele através de movimentos
+mecânicos.
+• Espaço de Trabalho: Região do mundo
+que o robô pode alcançar através dos seus
+movimentos, onde pode levar a cabo as
+tarefas programadas.
+--- Page 27 ---
+Exemplo de Robô em seu Espaço de Trabalho
+Espaço de Trabalho
+-10o  1 
+90o
+0o  2 
+180o
+1
+2
+--- Page 29 ---
+Características Gerais:
+▪ Braço manipulador – emula
+a função do braço humano:
+através do seu movimento
+manipula objetos
+(ferramentas, peças, etc.)
+no seu espaço de trabalho.
+▪ Pelo menos um ponto da
+sua estrutura é fixo na sua
+base.
+▪ Seu espaço de trabalho é
+limitado a uma região
+próxima a esse ponto fixo.
+
+--- Page 30 ---
+Aplicações de Robôs Manipuladores
+• Robôs manipuladores industriais geralmente trabalham integrados
+em Células de Trabalho, associados a outras máquinas:
+– Máquinas de comando numérico.
+– Veículos de Guiado Automático (AGV's).
+– Sistemas de armazenagem automática (AS/RS - Automatic
+Storage/Retrieval System)
+– Esteiras.
+– Pontes rolantes.
+– Outros robôs.
+– etc.
+--- Page 31 ---
+• A) Estação de posicionamento sobre o transportador para carga/descarga.  
+• B) Eixo transversal para aumentar o espaço de trabalho do robô. 
+• C) Estação de inspeção por computador integrada ao robô. 
+• D) Estação de montagem. 
+
+--- Page 32 ---
+Carga e Descarga (Pick and Place):
+
+--- Page 33 ---
+Armazenamento Automático (AS/RS):
+
+--- Page 36 ---
+Empacotamento em paletas (pallets):
+
+--- Page 37 ---
+Transporte de materiais:
+
+--- Page 38 ---
+Montagem automatizada:
+
+--- Page 39 ---
+Soldagem:
+
+--- Page 42 ---
+Aplicação de resina:
+
+--- Page 43 ---
+Descrever a arquitetura, os 
+componentes e os casos de 
+uso do ROS 2
+--- Page 44 ---
+O QUE É ROS ?
+--- Page 56 ---
+Por que o ROS 2 existe?
+--- Page 57 ---
+O problema de desenvolver robótica sem framework
+• Heterogeneidade de hardware
+• Sensores de fabricantes diferentes têm APIs incompatíveis
+• Trocar um LiDAR Hokuyo por um Velodyne = reescrever código do zero
+• Concorrência complexa
+• LiDAR a 20 Hz, câmera a 30 Hz, controlador a 100 Hz
+• Gerenciar threads manualmente leva a condições de corrida
+• Distribuição frágil
+• Raspberry Pi + GPU board + estação base precisam se comunicar
+• Sockets manuais: sem descoberta automática nem tolerância a falha
+• Reuso zero
+• SLAM, Nav2, MoveIt2: anos de desenvolvimento para cada equipe
+--- Page 58 ---
+O que é o ROS 2
+• Framework de middleware para sistemas robóticos distribuídos
+• Não é um SO — é uma camada de software sobre Linux ou RTOS
+• Organização fundamental: o NÓ
+• Processo independente com uma única responsabilidade
+• Exemplos: lidar_node / slam_node / motor_driver_node / camera_node
+• Se um nó trava, os outros continuam funcionando normalmente
+• Três mecanismos de comunicação padronizados
+• Tópicos  — publicação/assinatura contínua  (LiDAR → SLAM)
+• Serviços — chamada síncrona request/response (ligar alarme)
+• Ações   — tarefas longas com feedback e cancelamento (navegar)
+• Ecossistema de ferramentas
+• RViz2 (visualização 3D)  |  RQt (diagnóstico)  |  Gazebo (simulação)
+--- Page 59 ---
+https://docs.ros.org/
+
+--- Page 60 ---
+Grafo de Computação e 
+Middleware DDS
+--- Page 61 ---
+O Grafo de Computação
+• Conjunto de todos os nós e conexões ativas em tempo real
+• Estrutura de um robô móvel típico:
+• [lidar_node] ──/scan──
+ [slam_node] ──/map──
+ [nav_node]
+• [nav_node] ──/cmd_vel──
+ [motor_driver_node]
+• Características:
+• Dinâmico — nós sobem e descem sem afetar os demais
+• Cada nó declara o que publica, assina, oferece e consome
+• Visualização em tempo real:  rqt_graph
+• Comandos CLI essenciais:
+• ros2 node list →  todos os nós ativos
+• ros2 topic list →  todos os tópicos
+• ros2 topic echo /scan→mensagens em tempo real
+--- Page 62 ---
+ROS 1: roscore  vs  ROS 2: DDS
+ROS 1 — Ponto único de falha
+• roscore: registro central obrigatório
+• Todo nó consulta o roscore para se 
+comunicar
+• roscore morreu → sistema inteiro 
+para
+• Inaceitável em sistemas críticos
+• Impacto real:
+• Robô cirúrgico: roscore cai → tudo 
+para
+• Frota: um problema derruba todos os 
+robôs
+ROS 2 — Descoberta distribuída DDS
+• Não existe roscore no ROS 2
+• Cada nó anuncia presença via multicast 
+UDP
+• Nós se descobrem automaticamente, 
+peer-to-peer
+• Um nó cai → os demais continuam 
+operando
+• Responsabilidades do DDS:
+• Descoberta automática sem configurar 
+IPs
+• Serialização e transporte de mensagens
+• Políticas de QoS configuráveis por tópico
+--- Page 63 ---
+Isolamento: ROS_DOMAIN_ID e Namespaces
+• Problema: dois robôs na mesma rede WiFi interferem entre si
+• /cmd_vel do Robô A chega no Robô B → comportamento imprevisível
+• Solução 1: ROS_DOMAIN_ID
+• Inteiro 0–232 definido por variável de ambiente
+• DDS filtra: só chegam mensagens do mesmo DOMAIN_ID
+• export ROS_DOMAIN_ID=1   # Robô A e sua estação base
+• export ROS_DOMAIN_ID=2   # Robô B e sua estação base
+• Solução 2: Namespaces
+• Organização lógica dentro do mesmo domínio
+• /robo1/cmd_vel   vs   /robo2/cmd_vel
+• Múltiplos robôs no mesmo grafo sem colisão de nomes de tópicos
+--- Page 64 ---
+Casos de Uso Reais do ROS 2
+--- Page 65 ---
+Sistemas Físicos com ROS 2
+Robótica móvel e industrial
+• Robô de armazém (MiR, Amazon)
+• SLAM + Nav2 + controle de motores
+• Frotas sem interferência via 
+DOMAIN_ID
+• Algoritmos compartilhados — sem 
+reescrever
+• Braço industrial (UR5, Franka)
+• MoveIt2 + ros2_control
+• Ação FollowJointTrajectory com 
+feedback
+• Cancelamento emergencial em tempo 
+real
+Veículos e sistemas críticos
+• Drone de inspeção (PX4 + ROS 2)
+• Autopiloto via px4_ros_com
+• Nó de visão em GPU board separada
+• Detecção de fissuras em infraestrutura
+• Robô cirúrgico assistido
+• Loop de controle a 1 kHz com 
+PREEMPT_RT
+• DDS-Security: autenticação e criptografia
+• Sem roscore: zero ponto único de falha
+--- Page 66 ---
+Sistemas Simulados com ROS 2
+Desenvolvimento e validação
+• Treinamento de algoritmos
+• Gazebo publica /scan, /odom, /tf 
+idênticos ao hardware
+• O algoritmo não distingue simulação de 
+hardware real
+• Iterações rápidas sem risco de dano 
+físico
+• Validação HIL (Hardware-in-Loop)
+• Mesmo código no simulador e no 
+hardware real
+• Só o driver de baixo nível é trocado
+Integração contínua (CI/CD)
+• Testes automatizados a cada 
+commit
+• Gazebo headless em GitHub Actions / 
+Jenkins
+• Robô executa rota → compara com 
+resultado esperado
+• Build falha se comportamento divergir
+• Por que impossível no ROS 1:
+• roscore precisa estar vivo em background
+• ROS 2: sem processo central = CI nativo
+--- Page 67 ---
+Comparar ROS 1 com ROS 2
+--- Page 68 ---
+Diferença 1 — Ponto único de falha vs Descoberta distribuída
+Limitação do ROS 1
+• roscore: processo central 
+obrigatório
+• Todos os nós dependem dele para 
+comunicar
+• Falha do roscore = falha de todo o 
+sistema
+• Analogia: livro de endereços único
+• Destruir o livro → ninguém se 
+encontra mais
+• Impacto em produção:
+• Robô cirúrgico: roscore cai → tudo 
+para
+• Frota: um problema derruba todos 
+os robôs
+Solução do ROS 2
+• DDS com multicast UDP —
+sem roscore
+• Cada nó anuncia presença ao subir 
+na rede
+• Nós se descobrem peer-to-peer 
+automaticamente
+• Falha de um nó → demais 
+continuam operando
+• Impacto em produção:
+• Robô cirúrgico: subsistemas 
+continuam isolados
+• Frota: um robô cai → outros 
+operam normalmente
+• CI/CD: sem roscore em 
+background = testes nativos
+--- Page 69 ---
+Diferença 2 — Suporte a Tempo Real
+Limitação do ROS 1
+• Linux padrão: agendador CFS 
+não determinístico
+• Callbacks podem ser atrasados 
+indefinidamente
+• Loop de controle a 1 kHz = 
+impossível garantir
+• Impacto em produção:
+• Controlador de torque de 
+exoesqueleto
+• Atraso de 5 ms → movimento 
+brusco = risco de lesão
+• Frameworks externos 
+necessários — fora do ROS 1
+Solução do ROS 2
+• Suporte a RTOS e Linux com 
+PREEMPT_RT
+• Executor com prioridades de 
+thread configuráveis
+• Janelas de execução 
+determinísticas garantidas
+• ros2_control: interface padronizada 
+para RT
+• Impacto em produção:
+• Controlador de torque direto como 
+nó ROS 2
+• Loop garantido a 1 kHz sem 
+framework externo
+• Próteses e exoesqueletos com 
+controle seguro
+--- Page 70 ---
+Diferença 3 — Segurança de Comunicação
+Limitação do ROS 1
+• Comunicação não autenticada e 
+não criptografada
+• Qualquer nó na rede publica em 
+qualquer tópico
+• Qualquer máquina chama 
+qualquer serviço
+• Ataque possível em rede 
+compartilhada:
+• rostopic pub /cmd_vel Twist 
+"{linear:{x:1.0}}"
+• Robô sai correndo — sem 
+nenhuma autenticação
+• Inaceitável em ambientes 
+industriais ou hospitalares
+Solução do ROS 2 — SROS2
+• DDS-Security com SROS2
+• Autenticação: certificados X.509 
+por nó
+• Autorização: quais nós publicam 
+em quais tópicos
+• Criptografia: AES-128/256 em 
+trânsito
+• Configuração:
+• Arquivo de política XML por nó
+• Nó sem certificado = rejeitado 
+pelo DDS
+• Integra com infraestrutura PKI 
+corporativa
+--- Page 71 ---
+Quando ainda faz sentido manter o ROS 1?
+• Critério 1: Sistema legado estável + rede isolada
+• Robô de pesquisa rodando ROS 1 Noetic há 3 anos sem problemas
+• Rede completamente isolada: sem risco de ataque externo
+• Equipe domina ROS 1: custo de migração supera o benefício
+• Conclusão: manter com plano de migração documentado
+• Critério 2: Dependência crítica sem port para ROS 2
+• Ferramenta de pesquisa específica ainda sem equivalente em ROS 2
+• Manter temporariamente com plano de port definido
+• ROS 1 Noetic: suporte encerrado em maio de 2025
+• Fora desses dois casos: qualquer sistema NOVO deve usar ROS 2

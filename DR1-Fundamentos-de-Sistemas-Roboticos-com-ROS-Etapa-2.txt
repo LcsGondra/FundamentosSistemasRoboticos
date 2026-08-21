@@ -1,0 +1,406 @@
+--- Page 1 ---
+Fundamentos de Sistemas Robóticos com ROS 2
+Etapa 2
+Professor Mario Pego
+mario.pego@prof.infnet.edu.br
+
+--- Page 2 ---
+Cronograma
+
+--- Page 3 ---
+Identificar os diferentes tipos 
+de sensores e atuadores 
+utilizados em sistemas 
+robóticos físicos e simulados
+--- Page 4 ---
+Sensores, Atuadores e Fluxo 
+de Dados
+--- Page 5 ---
+Sensores
+Sensores são dispositivos cuja finalidade é obter
+informações sobre o ambiente em que se encontram,
+e são utilizados como componentes do sistema de
+controle de realimentação do robô. Há diversos tipos
+de sensores que podem ser classificados de acordo
+com os princípios físicos sobre os quais eles estão
+baseados.
+--- Page 6 ---
+Sensor de posição
+O sensor de posição determina as posições dos elos ou de elementos externos, informando
+ao sistema de controle que, então, executa as decisões apropriadas para o funcionamento. Um
+tipo de sensor de posição, por exemplo, é o “encoder” que tem como propriedade informar a
+posição por meio de contagem de pulsos. Neste caso, tem-se uma fonte de luz, um receptor e um
+disco perfurado, que irá modular a recepção da luz ao girar.
+Este disco está preso a uma junta, de forma a criar um movimento rotacional, enquanto
+que a fonte de luz e o receptor estão fixos. A rotação do disco cria uma série de pulsos pela
+interrupção ou não da luz recebida pelo detector. Estes pulsos de luz são transformados pelo
+detector em uma série de pulsos elétricos. Os “encoders” podem ser classificados em absoluto e
+incremental.
+--- Page 7 ---
+Encoder rotativo
+--- Page 8 ---
+Encoder incremental
+--- Page 9 ---
+Encoder Absoluto
+--- Page 10 ---
+Encoder Linear
+
+--- Page 11 ---
+Encoder  absoluto e incremental
+
+--- Page 15 ---
+Sensor de Toque
+O sensor de toque fornece um sinal binário de
+saída que indica se houve ou não contato com o
+objeto. Um dos modelos mais simples é feito com
+duas chapas de metal que devem ser tocadas ao
+mesmo tempo pelos dedos de uma pessoa. A
+resistência dos dedos é suficiente para acionar um
+circuito sensível.
+--- Page 16 ---
+Sensor de pressão
+O sensor de pressão é uma estrutura mecânica planejada a
+deformar-se dentro de certos limites. Um modelo simples
+deste tipo de sensor pode ser feito com material Robótica de
+esponja condutora, pois ela tem uma resistividade elevada que
+se altera quando deformada. Outro modelo mais sofisticado e
+versátil é o strain-gage, que é, na sua forma mais completa, um
+resistor elétrico composto de uma finíssima camada de
+material condutor. As tensões mecânicas são proporcionais às
+deformações medidas pelo sensor.
+--- Page 18 ---
+Sistemas de acionamento
+Os acionadores são dispositivos responsáveis pelo
+movimento das articulações e do desempenho
+dinâmico do robô. Esses dispositivos podem ser
+elétricos, hidráulicos ou pneumáticos, cada um com
+suas características. A seguir será descrito o
+funcionamento desses dispositivos.
+--- Page 19 ---
+Acionadores hidráulicos
+Os principais componentes deste sistema são: motor,
+cilindro, bomba de óleo, válvula e tanque de óleo. O motor é
+responsável pelo fluxo de óleo no cilindro em direção ao pistão
+que movimenta a junta. Assim, este tipo de acionador é
+geralmente associado a robôs de maior porte, quando
+comparados aos acionadores pneumáticos e elétricos.
+Entretanto a precisão em relação aos acionadores elétricos é
+menor.
+--- Page 20 ---
+Acionadores hidráulicos
+--- Page 21 ---
+Direção Hidráulica
+--- Page 22 ---
+Acionadores elétricos
+Geralmente robôs de tamanho pequeno a
+médio utilizam acionadores elétricos. Os
+acionadores elétricos mais comuns em uso nos
+robôs são: motor de corrente contínua ou DC,
+servo-motor e motor de passo. Esses tipos de
+acionadores não propiciam muita velocidade ou
+potência, quando comparados com acionadores
+hidráulicos, porém atingem maior precisão.
+--- Page 23 ---
+Direção Elétrica
+--- Page 24 ---
+Acionamento elétrico x acionamento hidráulico
+--- Page 25 ---
+Servomotores
+Servomotores são compostos por motores DC e um redutor de
+velocidades, junto com um sensor de posição e um sistema de controle
+realimentado. Em outras palavras, os servomotores podem ser considerados
+como sendo motores comandados em posição (angular ou linear), já que, do
+ponto de vista de quem os utiliza, o controle interno em malha fechada é
+irrelevante. Os servomotores são pequenos, com ampla variação de torques.
+O mecanismo de posicionamento ajusta a posição angular por meio
+de um sinal codificado que lhe é enviado. Enquanto esse código estiver na
+entrada, o servo irá manter a sua posição angular. Em geral o sinal é do tipo
+PWM (Pulse Width Modulation), ou seja, a posição angular irá depender da
+largura do pulso enviado.
+--- Page 28 ---
+Motor de Passo
+• Rotação em sentido horário e anti -horário
+• Variações incrementais de precisão angular
+• Repetição de movimentos bastante exatos
+• Baixo torque
+• Um torque de sustentação à velocidade zero
+• Possibilidade de controle digital
+--- Page 29 ---
+Motor de Passo
+
+--- Page 30 ---
+Motor de Passo
+B2
+B1
+B0
+B3
+--- Page 31 ---
+Acionadores Pneumáticos
+Os acionadores pneumáticos são semelhantes aos
+acionadores hidráulicos, porém a diferença é a
+utilização de ar ao invés de óleo. Entretanto o ar é
+altamente compressível, o que causa uma baixa
+precisão e força, mas estes acionadores possuem alta
+velocidade.
+--- Page 32 ---
+Acionadores Pneumáticos
+--- Page 33 ---
+Métodos de acionamento
+Os acionadores elétricos tendem a ser maiores e
+mais pesados que acionadores hidráulicos e
+pneumáticos. Por este motivo, nem sempre é possível
+posicionar tais atuadores próximos às respectivas
+juntas, em virtude de restrições no espaço disponível
+ou de problemas com deflexões devido ao peso.
+Assim sendo, os acionadores podem ser acoplados
+de forma direta ou indireta.
+--- Page 34 ---
+Acionamento indireto 
+Uma vez que os atuadores das juntas são pesados, os fabricantes
+tentam introduzir alterações no projeto que permitam redução do peso nas
+juntas próximas ao pulso e transferir este peso, quando possível, para a
+base. Desta forma consegue-se uma capacidade de carga maior para o
+braço. Este tipo de acionamento é denominado indireto, já que o atuador
+fica afastado da junta movida por ele. Neste tipo de acionamento, é
+necessário usar algum tipo de transmissão de potência, como polias,
+correntes, rodas dentadas, engrenagens, parafusos e correias, ou seja, o
+acionador é adaptado longe da junta pretendida do manipulador.
+Entretanto este método sofre efeitos indesejados no desempenho do robô,
+devido à folga nas engrenagens, flexão dos vínculos do manipulador,
+escorregamento dos sistemas de polias.
+--- Page 35 ---
+Acionamento direto
+Neste método, o acionador é adaptado diretamente na junta, o que,
+em determinados casos, proporciona melhor precisão e rendimento de
+potência em relação ao acionamento indireto. Contudo, devido ao baixo
+torque por unidade de peso alcançado pelos motores elétricos, costuma-se
+utilizá-los em conjunto com redutores de engrenagens, que aumentam o
+torque, porém reduzem a velocidade. Neste caso, se o acionador estiver
+fixado no elo motor, o acionamento é considerado direto. Nas juntas
+rotativas com acionamento direto, o sensor de posição angular (“encoder”)
+fornece o ângulo relativo entre o elo motor e o elo movido. No
+acionamento indireto esta leitura fornece o ângulo do elo movido em
+relação a um outro elo, anterior ao elo motor.
+--- Page 37 ---
+Sensor vs Atuador — Definição e Frequência
+• Sensor: transforma grandeza física em dado digital
+• Temperatura → número  |  Distância → número  |  Luz → pixel
+• O dado SEMPRE flui:  mundo físico → sensor → software
+• Atuador: transforma comando digital em grandeza física
+• Número → rotação de motor  |  Número → posição de servo
+• O comando SEMPRE flui:  software → atuador → mundo físico
+• Ciclo de controle robótico:
+• Sensor → Software → Atuador → Mundo Físico → Sensor → ...
+• Frequência de amostragem — propriedade dos sensores:
+• LiDAR: 20 Hz  |  Câmera: 30 Hz  |  Encoder: 100–1000 Hz
+• Cada leitura = uma mensagem publicada em um tópico ROS 2
+--- Page 38 ---
+Criar um ambiente de 
+desenvolvimento ROS 2  no 
+Ubuntu 
+--- Page 39 ---
+https://releases.ubuntu.com/jammy/
+
+--- Page 44 ---
+6
+Instalar o Ubuntu
+• Clique em “Iniciar/Start” para ligar a VM — o instalador do Ubuntu abrirá.
+• Escolha idioma e layout de teclado (ex.: Português/Brasil).
+• Selecione “Instalação normal” e marque “Baixar atualizações” e “Instalar software de terceiros”.
+• Escolha “Apagar disco e instalar o Ubuntu” — isso afeta apenas o disco virtual, não o seu 
+computador real.
+• Defina nome de usuário, senha e nome do computador; aguarde a instalação e reinicie.
+--- Page 45 ---
+Instalar o Guest Additions
+• Com o Ubuntu já rodando, no menu do VirtualBox: Dispositivos → Inserir imagem de CD dos 
+Adicionais para Convidado, e tente rodar o instalador que abre na janela.
+• Se preferir (ou se a instalação pela janela falhar), abra um terminal e instale as ferramentas de 
+compilação antes:
+sudo apt update
+sudo apt install -y build-essential linux-headers-$(uname -r) gcc-12 perl dkms
+• Entre na pasta da imagem montada e rode o instalador manualmente:
+cd /media/usuario/VBox_GAs_7.1.18
+sudo ./VBoxLinuxAdditions.run
+• Reinicie a máquina virtual (sudo reboot) para os módulos carregarem.
+• Para copiar e colar entre host e VM: nas configurações da VM → Geral → Avançado → Área de 
+Transferência Compartilhada → escolha "Bidirecional".
+PO R  Q U E  IN ST A L A R ?
+Tela em resolução total e redimensionável
+Copiar e colar entre host e VM (após ativar 
+"Bidirecional" nas configurações)
+Pastas compartilhadas com o computador real
+Melhor desempenho gráfico
+16
+--- Page 46 ---
+8
+Atualizar o sistema e abrir o terminal
+• Abra o Terminal no Ubuntu: atalho Ctrl+Alt+T, ou procure “Terminal” no 
+menu de aplicativos.
+• Rode os comandos ao lado para atualizar todos os pacotes do sistema.
+• Esse passo evita conflitos entre pacotes durante a instalação do ROS 2.
+• Pode levar alguns minutos, dependendo da sua internet.
+terminal
+sudo apt update
+sudo apt upgrade -y
+1
+7
+--- Page 47 ---
+1
+0
+Habilitar repositórios e adicionar a fonte do ROS 2
+• O repositório “Universe” do Ubuntu precisa estar ativo — ele contém pacotes mantidos pela comunidade.
+• Em seguida, adicionamos a chave de segurança (GPG) e o endereço do repositório oficial do ROS 2.
+terminal
+# habilitar repositório Universe
+sudo apt install software-properties-common -y
+sudo add-apt-repository universe
+# baixar a chave GPG do ROS 2
+sudo apt update && sudo apt install curl -y
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+-o /usr/share/keyrings/ros-archive-keyring.gpg
+# registrar o repositório do ROS 2 no apt
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
+http://packages.ros.org/ros2/ubuntu $(. /etc/os -release && echo $UBUNTU_CODENAME) main" | \
+sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+2
+0
+--- Page 48 ---
+Instalar os pacotes do ROS 2 Humble
+• Com a fonte configurada, atualizamos a lista de pacotes e instalamos o pacote “desktop” — a instalação completa, com ferramentas gráficas 
+(RViz, simuladores etc.).
+terminal
+sudo apt update
+sudo apt install ros-humble-desktop -y
+# ferramentas de desenvolvimento (build, teste, etc.)
+sudo apt install ros-dev-tools -y
+2
+1
+--- Page 49 ---
+1
+2
+Configurar o ambiente do ROS 2
+• Todo novo terminal precisa “carregar” o ROS 2 antes de usá-lo — o comando source faz isso.
+• Para não repetir esse comando sempre, adicionamos a linha ao arquivo ~/.bashrc, que roda automaticamente em cada terminal novo.
+terminal
+# carregar o ROS 2 no terminal atual
+source /opt/ros/humble/setup.bash
+# tornar isso automático em todo terminal novo
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+2
+2
+--- Page 50 ---
+Testar a instalação
+• Abra dois terminais lado a lado (Ctrl+Alt+T duas vezes).
+• Em um terminal, rode o “talker” (que envia mensagens); no outro, o “listener” (que recebe).
+• Se as mensagens aparecerem nos dois lados, o ROS 2 Humble está instalado e funcionando corretamente!
+terminal 1
+# terminal 1
+ros2 run demo_nodes_cpp talker
+terminal 2
+# terminal 2
+ros2 run demo_nodes_py listener
+2
+3
+--- Page 51 ---
+Importando Appliance (.ova) 
+no VirtualBox
+Arquivo → Importar Appliance → seleciona o .ova → Importar
+Usuário: mariopego
+Senha: infnet
+--- Page 52 ---
+Crie um novo usuário (administrador)
+Rode:
+source /opt/ros/humble/setup.bash
+ros2 run demo_nodes_cpp talker
+Se funcionar, torne permanente:
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+Depois abra um terminal novo e teste ros2 run demo_nodes_cpp talker, 
+sem precisar dar source manual.
+--- Page 53 ---
+Testar a instalação
+• Abra dois terminais lado a lado (Ctrl+Alt+T duas vezes).
+• Em um terminal, rode o “talker” (que envia mensagens); no outro, o “listener” (que recebe).
+• Se as mensagens aparecerem nos dois lados, o ROS 2 Humble está instalado e funcionando corretamente!
+terminal 1
+# terminal 1
+ros2 run demo_nodes_cpp talker
+terminal 2
+# terminal 2
+ros2 run demo_nodes_py listener
+2
+3
+--- Page 55 ---
+Workspace ROS2 com ColconCriação do tp1_ws, build inicial, 
+validação com ros2 doctor
+e teste de comunicação talker / listener
+--- Page 56 ---
+Objetivo
+1 Criar um workspace Colcon (tp1_ws) com a estrutura padrão src/
+2 Executar o build inicial vazio e validar a saída do Colcon
+3 Validar a instalação do ROS2 com ros2 doctor
+4 Rodar o exemplo talker/listener e confirmar a troca de mensagens
+Por que isso importa?
+Todo pacote ROS2 que você criar neste curso 
+vai viver dentro de um workspace Colcon. 
+Entender essa estrutura agora evita dor de 
+cabeça nos próximos TPs.
+--- Page 57 ---
+1 Criar o workspace tp1_ws
+Estrutura padrão de um workspace Colcon: uma pasta raiz com uma subpasta src/
+$ mkdir -p ~/tp1_ws/src
+$ cd ~/tp1_ws
+$ ls
+mkdir -p
+Cria a pasta tp1_ws e, dentro dela, a subpasta src/ em 
+um único comando — o -p cria os diretórios 
+intermediários que não existirem.
+cd
+Entra na raiz do workspace — é a partir daqui que o 
+Colcon deve ser executado.
+A pasta src/ é onde os pacotes (código-fonte) serão criados nos próximos TPs. Por enquanto ela fica 
+vazia.
+--- Page 58 ---
+2 Build inicial vazio com Colcon
+$ colcon build Saída esperada
+Starting >>> (nenhum pacote)
+Summary: 0 packages finished [x.xx s]O que o Colcon cria
+• build/  — arquivos intermediários de compilação
+• install/  — pacotes instalados e setup.bash
+• log/  — logs de cada execução do build Workspace vazio (sem pacotes em src/) é esperado neste TP — o objetivo é só 
+confirmar que o Colcon funciona.
+--- Page 60 ---
+3 Validar a instalação com ros2 doctor
+$ ros2 doctor
+O que o comando checa
+• Ambiente (variáveis ROS_DISTRO, RMW, etc.)
+• Rede e configuração de DDS
+• Versão da plataforma e dependências
+• Topologia de nós ativos no momento
+Critério de validação
+OK Warning é aceitável
+X Error não deve aparecer
+Exemplo de saída (resumida):
+All 5 checks passed
+(ou: 1 Warning found)
+--- Page 61 ---
+4 Testar a comunicação: talker e listener
+Dois terminais separados, ambos com o ambiente ROS2 carregado (source do setup.bash)
+Terminal 1 — Publisher
+$ ros2 run demo_nodes_py talker
+[INFO] Publishing: 'Hello World: 1'
+[INFO] Publishing: 'Hello World: 2'
+Terminal 2 — Subscriber
+$ ros2 run demo_nodes_py listener
+[INFO] I heard: 'Hello World: 1'
+[INFO] I heard: 'Hello World: 2'
+Confirmação esperada
+O terminal do listener deve exibir, em tempo real, as mesmas mensagens numeradas publicadas pelo talker — isso confirma que os dois processos estão se 
+comunicando pelo tópico /chatter.
+O número é o timestamp da mensagem de log, no formato segundos.nanossegundosdesde o Unix epoch (1º de janeiro de 1970).
+--- Page 62 ---
+Checklist de Validação
+OK ros2 doctor Nenhum Error na saída (Warning é aceitável)
+OK colcon build Indica "0 packages finished" sem erro
+OK tree tp1_ws/ Exibe src/, build/, install/ e log/
+OK listener (terminal 2) Exibe as mensagens publicadas pelo talker

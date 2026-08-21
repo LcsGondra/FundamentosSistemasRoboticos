@@ -1,0 +1,727 @@
+--- Page 1 ---
+Fundamentos de Sistemas Robóticos com ROS 2
+Etapa 4
+Professor Mario Pego
+mario.pego@prof.infnet.edu.br
+
+--- Page 2 ---
+Cronograma
+
+--- Page 3 ---
+Implementar comunicação 
+assíncrona por tópicos com 
+Publishers e Subscribers
+--- Page 4 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · AGENDA
+O que vamos ver
+1 Publishers em rclpy
+create_publisher, timers e frequência
+2 Subscribers em rclpy
+create_subscription e callbacks
+3 Mensagens geometry_msgs
+A estrutura do Twist
+4 QoS
+Reliability, durability e profiles
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 13 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · REVISÃO
+Relembrando: tópicos
+Da Etapa 3 — comunicação assíncrona muitos-para-muitos
+• Um publisher envia mensagens para um canal nomeado, sem saber quem está ouvindo
+• Um ou mais subscribers recebem cada mensagem, de forma assíncrona
+• Hoje vamos implementar os dois lados em Python com rclpy — os mesmos que você vai entregar no TP2
+• O par Publisher/Subscriber é a base de praticamente todo sensor e atuador em ROS 2
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 14 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · CONCEITO
+Anatomia de um Publisher
+create_publisher(tipo, tópico, fila)
+TRECHO
+salvar em  comunicacao_ros2/comunicacao_ros2/velocidade_pub.py
+from geometry_msgs.msg import Twist
+class VelocidadePub(Node):
+def __init__(self):
+super().__init__(
+'velocidade_pub')
+self.pub = self.create_publisher(
+Twist, '/cmd_vel', 10)
+Os 3 argumentos
+Tipo da mensagem, nome do tópico e 
+tamanho da fila de histórico (queue size) —
+exatamente a assinatura que você vai usar 
+no velocidade_pub.py do TP2.
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 15 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · PRÁTICA
+Exemplo completo: velocidade_pub.py
+Publica Twist em /cmd_vel a 2 Hz — robô girando no próprio eixo
+ESCREVER AGORA NO ARQUIVO
+salvar em  comunicacao_ros2/comunicacao_ros2/velocidade_pub.py
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
+class VelocidadePub(Node):
+def __init__(self):
+super().__init__('velocidade_pub')
+self.pub = self.create_publisher(Twist, '/cmd_vel', 10)
+self.create_timer(0.5, self.tick)   # 2 Hz
+def tick(self):
+msg = Twist()
+msg.linear.x = 0.0
+msg.angular.z = 0.5
+self.pub.publish(msg)
+def main(args=None):
+rclpy.init(args=args)
+rclpy.spin(VelocidadePub())
+rclpy.shutdown()
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 16 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · CONCEITO
+Timers e frequência de publicação
+O timer é quem controla o ritmo, não um loop manual
+EXEMPLO — NÃO EXECUTAR AGORA
+• create_timer(período_em_segundos, callback) chama o 
+callback automaticamente nesse intervalo
+• Para 2 Hz (o que o TP2 pede), o período é 1/2 = 0.5 
+segundos
+• Nunca use time.sleep() dentro do callback — isso bloqueia 
+todo o executor
+• 'ros2 topic hz /cmd_vel' deve indicar frequência próxima 
+de 2.0 Hz — é assim que o TP2 valida esse requisito
+Fórmula rápida
+período (s) = 1 / frequência (Hz)
+2 Hz → 0.5s (o valor do TP2)
+10 Hz → 0.1s
+0.2 Hz → 5s
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 17 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · CONCEITO
+geometry_msgs/msg/Twist
+A mensagem usada no /cmd_vel do TP2
+EXEMPLO — NÃO EXECUTAR AGORA
+linear
+x, y, z  (m/s)
+angular
+x, y, z  (rad/s)
+No TP2: linear.x = 0.0 (parado) e angular.z = 0.5 (girando no próprio eixo) — só esses dois campos são usados.
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 18 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · PRÁTICA
+Construindo a mensagem do velocidade_pub
+TP2 Exercício 1
+TRECHO
+comunicacao_ros2/comunicacao_ros2/velocidade_pub.py
+msg = Twist()
+msg.linear.x = 0.0   # sem deslocamento
+msg.angular.z = 0.5  # rad/s, giro no eixo
+self.pub.publish(msg)
+Validação do TP2
+'ros2 topic echo /cmd_vel' deve mostrar 
+linear.x: 0.0 e angular.z: 0.5 em cada 
+mensagem publicada.
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 19 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · CONCEITO
+Anatomia de um Subscriber
+create_subscription(tipo, tópico, callback, qos)
+TRECHO
+comunicacao_ros2/comunicacao_ros2/monitor_velocidade.py
+class MonitorVelocidade(Node):
+def __init__(self):
+super().__init__(
+'monitor_velocidade')
+self.create_subscription(
+Twist, '/cmd_vel',
+self.callback, qos)
+def callback(self, msg):
+...
+Nome real do TP2
+monitor_velocidade.py é exatamente o 
+Subscriber pedido no Exercício 2 — o 4º 
+argumento aqui já é o QoSProfile 
+BEST_EFFORT, que veremos a seguir.
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 20 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · PRÁTICA
+Exemplo completo: monitor_velocidade.py
+QoS BEST_EFFORT · calcula a norma da velocidade linear e o sentido de rotação
+ESCREVER AGORA NO ARQUIVO
+salvar em  comunicacao_ros2/comunicacao_ros2/monitor_velocidade.py
+import math
+import rclpy
+from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy
+from geometry_msgs.msg import Twist
+class MonitorVelocidade (Node):
+def __init__(self):
+super().__ init__('monitor_velocidade ')
+qos = QoSProfile(depth=10, reliability= ReliabilityPolicy.BEST_EFFORT )
+self.create_subscription (Twist, '/cmd_vel', self.callback , qos)
+def callback(self, msg):
+v = math.sqrt(msg.linear.x **2 + msg.linear.y **2 + msg.linear.z **2)
+sentido = 'horário' if msg.angular.z < 0 else 'anti -horário'
+self.get_logger ().info(f'v={v:.2f} m/s, sentido={sentido}')
+def main(args=None):
+rclpy.init(args=args)
+rclpy.spin (MonitorVelocidade ())
+rclpy.shutdown ()
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 21 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · BOAS PRÁTICAS
+O que evitar dentro de um callback
+• Não bloqueie: nada de time.sleep(), input() ou chamadas de rede síncronas demoradas
+• Não chame rclpy.spin() de novo dentro do callback
+• Cálculos simples são seguros; processamento pesado deve rodar em outra thread
+• Se precisar chamar um serviço a partir de um callback, use call_async — nunca a chamada bloqueante
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 22 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · CONCEITO
+O que é QoS e por que importa
+Quality of Service — o contrato de confiabilidade da comunicação
+EXEMPLO — NÃO EXECUTAR AGORA
+• Define o comportamento da comunicação sob perda de 
+pacotes, reconexões e diferenças de velocidade
+• Publisher e subscriber negociam QoS na descoberta —
+perfis incompatíveis impedem a conexão
+• O TP2 pede explicitamente BEST_EFFORT no 
+monitor_velocidade — vamos entender por quê
+• Configurado via QoSProfile, passado no 
+create_publisher/create_subscription
+Analogia
+É como escolher entre carta registrada (garantida, mas 
+lenta) e um anúncio de rádio (rápido, mas pode não 
+chegar) — a escolha depende do que está sendo 
+transmitido.
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 23 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · QOS
+Reliability: RELIABLE vs BEST_EFFORT
+Critério RELIABLE BEST_EFFORT
+Garantia de entrega Sim, reenvia se perder Não, descarta silenciosamente
+Latência Maior (por causa do reenvio) Menor
+Cenário robótico ideal Comandos de velocidade, serviços Streaming de câmera/lidar a alta taxa
+Usado no TP2 — monitor_velocidade.py (Exercício 2)
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 24 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · QOS
+Durability: VOLATILE vs TRANSIENT_LOCAL
+Critério VOLATILE TRANSIENT_LOCAL
+Mensagens antigas Descartadas — só recebe o que chegar 
+depois Guarda as últimas N para novos subscribers
+Cenário robótico ideal Dados que mudam constantemente 
+(odometria) Mapas ou configurações publicadas 1x
+Exemplo prático /cmd_vel (o padrão usado no TP2) /map em navegação (nav2)
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 25 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · QOS
+History e Depth
+Quantas mensagens ficam na fila de cada lado
+EXEMPLO — NÃO EXECUTAR AGORA
+• History KEEP_LAST(n): guarda só as últimas n mensagens 
+(mais comum)
+• History KEEP_ALL: guarda todas — cuidado com uso de 
+memória
+• Depth define o valor de n quando KEEP_LAST é usado
+• No monitor_velocidade usamos depth=10 — o mesmo 
+valor padrão do create_publisher do velocidade_pub
+Valor típico
+depth=10 é um bom padrão para tópicos de controle 
+como /cmd_vel. Sensores de alta frequência (câmera, 
+lidar) costumam usar depth menor (1-5).
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 26 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · QOS
+Profiles pré-definidos
+Atalhos para combinações comuns
+EXEMPLO — não é o profile usado no TP2
+from rclpy.qos import (
+qos_profile_sensor_data,
+qos_profile_system_default,
+qos_profile_services_default,
+)
+self.create_subscription(
+Image, 'camera/image',
+self.cb, qos_profile_sensor_data)
+Por que o TP2 pede QoS 
+manual
+sensor_data já vem BEST_EFFORT pronto, 
+mas o TP2 pede para você montar o 
+QoSProfile manualmente no 
+monitor_velocidade — é assim que se 
+aprende o que cada campo realmente faz.
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 27 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · PRÁTICA
+Configurando o QoSProfile do monitor_velocidade
+Exatamente o objeto usado no Exercício 2 do TP2
+VERIFICANDO
+comunicacao_ros2/comunicacao_ros2/monitor_velocidade.py
+from rclpy.qos import QoSProfile, ReliabilityPolicy
+qos = QoSProfile(
+reliability=ReliabilityPolicy.BEST_EFFORT,
+depth=10,
+)
+self.create_subscription(Twist, '/cmd_vel', self.callback, qos)
+Etapa 4 · Competência 1 — Publishers e Subscribers 19
+--- Page 28 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · PRÁTICA
+Registrando o entry_point
+monitor_velocidade também precisa aparecer no setup.py
+ESCREVER AGORA NO ARQUIVO
+salvar em  comunicacao_ros2/setup.py
+entry_points={
+'console_scripts': [
+'velocidade_pub = '
+'comunicacao_ros2.velocidade_pub:main',
+'monitor_velocidade = '
+'comunicacao_ros2.monitor_velocidade:main',
+],
+},
+Não esqueça
+velocidade_pub já estava registrado desde a 
+Etapa 3. Agora acrescente a linha de 
+monitor_velocidade — sem isso, 'ros2 run 
+comunicacao_ros2 monitor_velocidade' 
+retorna 'No executable found'.
+Etapa 4 · Competência 1 — Publishers e Subscribers 20
+--- Page 29 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · PRÁTICA
+Recompilando e testando o par
+velocidade_pub foi alterado e monitor_velocidade é novo — os dois exigem build
+EXECUTAR AGORA NO TERMINAL
+Terminal 1 — build + velocidade_pub
+$ cd ~/tp1_ws
+$ colcon build --packages-select \
+comunicacao_ros2
+$ source ~/tp1_ws/install/setup.bash
+$ ros2 run comunicacao_ros2 \
+velocidade_pub
+Terminal 2 — monitor_velocidade
+$ source ~/tp1_ws/install/ setup.bash
+$ ros2 run comunicacao_ros2 \
+monitor_velocidade
+[INFO] v=0.00 m/s, sentido=anti-horário
+[INFO] v=0.00 m/s, sentido=anti-horário
+Por que recompilar
+colcon build precisa rodar de novo sempre que um arquivo .py muda OU um novo entry_point é registrado — mesmo que o pacote já 
+exista. Sem isso, o executor continua usando a versão antiga instalada.
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 30 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · APLICAÇÃO
+Cenários robóticos x política de QoS
+Cenário Reliability Durability
+/cmd_vel (velocidade_pub / 
+monitor_velocidade) BEST_EFFORT (no subscriber) VOLATILE
+Imagem de câmera a 30fps BEST_EFFORT VOLATILE
+Mapa publicado uma vez (nav2) RELIABLE TRANSIENT_LOCAL
+Estado da bateria RELIABLE VOLATILE
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 31 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · CONCEITO
+Compatibilidade de QoS
+O que acontece quando publisher e subscriber divergem
+EXEMPLO — NÃO EXECUTAR AGORA
+• RELIABLE (publisher) + BEST_EFFORT (subscriber) → 
+funciona (o subscriber aceita menos garantia)
+• É exatamente o caso do TP2: velocidade_pub usa o 
+padrão RELIABLE, monitor_velocidade pede BEST_EFFORT 
+— compatível
+• BEST_EFFORT (publisher) + RELIABLE (subscriber) → 
+INCOMPATÍVEL, a conexão não é estabelecida
+• O ROS 2 não avisa com um erro explícito — o sintoma é 
+'não chegam mensagens'
+Como depurar
+ros2 topic info /cmd_vel --verbose mostra o QoS de 
+cada publisher e subscriber conectado — use antes de 
+entregar o TP2 para confirmar que os dois nós estão 
+compatíveis.
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 32 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · CLI
+Inspecionando QoS na prática
+ros2 topic info --verbose — o comando de validação do TP2
+EXECUTAR AGORA NO TERMINAL
+$ ros2 topic info /cmd_vel --verbose
+Type: geometry_msgs/msg/Twist
+Publisher count: 1
+Node name: velocidade_pub
+QoS profile:
+Reliability: RELIABLE
+Durability: VOLATILE
+History (Depth): KEEP_LAST (10)
+No TP2
+O Exercício 4 pede exatamente essa leitura, junto com 'ros2 topic hz /cmd_vel' — saber interpretar cada campo aqui é parte da validação e 
+do relatório técnico.
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 33 ---
+Checklist da Competência 1
+OK velocidade_pub.py Publisher Twist em /cmd_vel a 2 Hz, pronto para o TP2
+OK monitor_velocidade.py Subscriber com QoS BEST_EFFORT, norma e sentido de rotação
+OK RELIABLE / BEST_EFFORT / 
+TRANSIENT_LOCAL sei escolher QoS para cada cenário
+OK ros2 topic info --verbose / hz sei validar frequência e QoS de um tópico ativo
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 34 ---
+COMPETÊNCIA 1 · PUBLISHERS E SUBSCRIBERS · ENCERRAMENTO
+Próximo passo
+Com velocidade_pub.py e monitor_velocidade.py prontos, os Exercícios 1 e 2 do TP2 já estão cobertos. 
+Na próxima competência, vamos implementar modo_server.py e modo_client.py — os serviços 
+Client/Server do Exercício 3.
+Etapa 4 · Competência 1 — Publishers e Subscribers
+--- Page 35 ---
+Implementar chamadas 
+síncronas entre nós com 
+serviços Client/Server ROS 2
+--- Page 36 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · AGENDA
+O que vamos ver
+1 Interfaces de serviço
+std_srvs e o padrão request/response
+2 Server em rclpy
+create_service e callbacks
+3 Client em rclpy
+create_client, call_async e Future
+4 Executors e boas práticas
+Evitando deadlocks e timeouts
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 37 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · REVISÃO
+Relembrando: serviços
+Da Etapa 3 — comunicação síncrona um-para-um
+• Um client envia uma requisição e aguarda uma resposta de um server
+• Diferente do tópico, existe confirmação: o client sabe que a operação foi processada
+• Hoje vamos implementar modo_server.py e modo_client.py — (Exercício 3 do TP2)
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 38 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · APLICAÇÃO
+Serviço em vez de tópico?
+Revisão prática da decisão
+• Use serviço quando a operação é pontual e você precisa 
+de confirmação (ligar um modo, resetar um estado)
+• Use tópico quando o dado é contínuo e perdas ocasionais 
+são aceitáveis (sensores, cmd_vel)
+• Serviço bloqueia o client até responder — não use para 
+operações demoradas (para isso existe Ação)
+Exemplo do TP2
+Ligar/desligar o 'modo autônomo' de um robô é uma 
+operação pontual com confirmação — por isso o TP2 
+pede um serviço (modo_server), não um tópico.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 39 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · CONCEITO
+std_srvs: tipos prontos
+SetBool é o tipo usado pelo modo_server do TP2
+Tipo Request Response
+std_srvs/srv/Empty (vazio) (vazio)
+std_srvs/srv/Trigger (vazio) bool success, string message
+std_srvs/srv/SetBool bool data bool success, string message
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 40 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · CONCEITO
+Anatomia do SetBool.srv
+A interface usada no modo_server do TP2
+EXEMPLO — NÃO EXECUTAR AGORA
+# SetBool.srv
+bool data
+---
+bool success
+string message
+Como funciona
+O gerador de interfaces do ROS 2 lê esse 
+arquivo e cria SetBool.Request (com o 
+campo data) e SetBool.Response (com 
+success e message) — é isso que você 
+importa em modo_server.py.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 41 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · CONCEITO
+Anatomia de um Server
+create_service(tipo, nome, callback)
+TRECHO
+salvar em  comunicacao_ros2/comunicacao_ros2/modo_server.py
+from std_srvs.srv import SetBool
+class ModoServer(Node):
+def __init__(self):
+super().__init__(
+'modo_server')
+self.create_service(
+SetBool, 'modo',
+self.callback)
+O callback
+Recebe (request, response) e DEVE retornar 
+o objeto response preenchido. request.data 
+é o bool True/False enviado pelo 
+modo_client.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 42 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · PRÁTICA
+Exemplo completo: modo_server.py
+True → modo autônomo · False → modo manual
+ESCREVER AGORA NO ARQUIVO
+salvar em comunicacao_ros2/comunicacao_ros2/modo_server.py
+import rclpy
+from rclpy.node import Node
+from std_srvs.srv import SetBool
+class ModoServer(Node):
+def __init__(self):
+super().__init__('modo_server')
+self.create_service(SetBool, 'modo', self.callback)
+def callback(self, request, response):
+if request.data:
+response.message = 'Robô em modo autônomo ativado'
+else:
+response.message = 'Robô em modo manual ativado'
+response.success = True
+return response
+def main(args=None):
+rclpy.init(args=args)
+rclpy.spin(ModoServer())
+rclpy.shutdown()
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 43 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · BOAS PRÁTICAS
+Campos de resposta: success e message
+O que o modo_client vai ler
+EXEMPLO — NÃO EXECUTAR AGORA
+• success=True/False informa objetivamente se a operação 
+funcionou
+• message é exatamente o texto que o TP2 pede: 'Robô em 
+modo autônomo ativado' ou 'Robô em modo manual 
+ativado'
+• O client SEMPRE deve checar response.success antes de 
+assumir sucesso
+• Evite lançar exceções não tratadas dentro do callback —
+isso derruba o server
+Validação do TP2
+'ros2 run comunicacao_ros2 modo_client -- true' deve 
+imprimir exatamente 'Robô em modo autônomo 
+ativado' — a string precisa bater com o que o Server 
+devolve.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 44 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · CONCEITO
+Anatomia de um Client
+create_client + wait_for_service
+TRECHO
+salvar em  comunicacao_ros2/comunicacao_ros2/modo_client.py
+from std_srvs.srv import SetBool
+class ModoClient(Node):
+def __init__(self):
+super().__init__(
+'modo_client')
+self.cli = self.create_client(
+SetBool, 'modo')
+while not self.cli.wait_for_service(
+timeout_sec=1.0):
+self.get_logger().info('aguardando...')
+wait_for_service
+Bloqueia até o modo_server aparecer no 
+grafo (ou até o timeout). Sem isso, rodar o 
+client antes do server resultaria em erro.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 45 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · CONCEITO
+Dois padrões de chamada
+Padrão Como funciona Quando usar
+call() (síncrono) Bloqueia a thread até a resposta chegar Scripts simples, fora de um callback
+call_async() (assíncrono) Retorna um Future imediatamente Dentro de nós com timers/callbacks ativos
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 46 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · CONCEITO
+call_async() e Future
+Como o modo_client envia a requisição
+TRECHO
+salvar em  comunicacao_ros2/comunicacao_ros2/modo_client.py
+request = SetBool.Request()
+request.data = True
+future = self.cli.call_async(request)
+# future.done() == False agora
+# ... o executor processa em background ...
+# future.result() -> SetBool.Response
+Future
+É um objeto padrão de programação 
+assíncrona: representa um resultado que 
+ainda não existe, mas vai existir. call_async() 
+nunca bloqueia.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 47 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · PRÁTICA
+Aguardando a resposta
+spin_until_future_complete — usado no modo_client.py
+TRECHO
+salvar em  comunicacao_ros2/comunicacao_ros2/modo_client.py
+def main(args=None):
+rclpy.init(args=args)
+client = ModoClient()
+req = SetBool.Request()
+req.data = sys.argv[1] == 'true'
+future = client.cli.call_async(req)
+rclpy.spin_until_future_complete(
+client, future)
+print(future.result().message)
+sys.argv
+O TP2 pede que o Client leia o argumento 
+true/false da linha de comando —
+sys.argv[1] captura exatamente esse valor.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 48 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · PRÁTICA
+Exemplo completo: modo_client.py
+Lê true/false de sys.argv e envia a requisição
+ESCREVER AGORA NO ARQUIVO
+salvar em  comunicacao_ros2/comunicacao_ros2/modo_client.py
+import sys
+import rclpy
+from rclpy.node import Node
+from std_srvs.srv import SetBool
+class ModoClient(Node):
+def __init__(self):
+super().__init__('modo_client')
+self.cli = self.create_client(SetBool, 'modo')
+while not self.cli.wait_for_service(timeout_sec=1.0):
+self.get_logger().info('aguardando modo_server...')
+def main(args=None):
+rclpy.init(args=args)
+client = ModoClient()
+req = SetBool.Request()
+req.data = sys.argv[1].lower() == 'true'
+future = client.cli.call_async(req)
+rclpy.spin_until_future_complete(client, future)
+print(future.result().message)
+rclpy.shutdown()
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 49 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · PRÁTICA
+Registrando os entry_points
+modo_server e modo_client precisam entrar no setup.py
+ESCREVER AGORA NO ARQUIVO
+salvar em  comunicacao_ros2/setup.py
+entry_points={
+'console_scripts': [
+# ... velocidade_pub, monitor_velocidade
+'modo_server = '
+'comunicacao_ros2.modo_server:main',
+'modo_client = '
+'comunicacao_ros2.modo_client:main',
+],
+},
+Não esqueça
+São dois nomes novos para acrescentar à 
+mesma lista de console_scripts. Sem os dois, 
+nem 'ros2 run ... modo_server' nem 'ros2 
+run ... modo_client' funcionam.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 50 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · PRÁTICA
+Recompilando e subindo o Server
+colcon build de novo — dois nós novos foram registrados
+EXECUTAR AGORA NO TERMINAL
+$ cd ~/tp1_ws
+$ colcon build --packages-select comunicacao_ros2
+$ source install/setup.bash
+$ ros2 run comunicacao_ros2 modo_server
+[INFO] [modo_server]: nó iniciado, aguardando chamadas em /modo
+Deixe rodando
+Mantenha esse terminal aberto — modo_server precisa estar ativo para os testes com 'ros2 service call' e modo_client a seguir.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 51 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · CONCEITO
+Executors: Single vs MultiThreaded
+Quem decide a ordem em que os callbacks rodam
+EXEMPLO — NÃO EXECUTAR AGORA
+• SingleThreadedExecutor (padrão): processa um callback 
+por vez, em sequência
+• MultiThreadedExecutor: processa múltiplos callbacks em 
+paralelo, em threads diferentes
+• modo_server e modo_client, do jeito que construímos, 
+funcionam bem com o executor padrão
+• MultiThreaded só é necessário quando um mesmo nó 
+precisa atender E chamar serviços ao mesmo tempo
+Regra prática
+Se seu nó só publica/assina tópicos ou só atende 
+serviços (não os dois cruzados), o executor padrão 
+single-threaded é suficiente.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 52 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · CONCEITO
+Por que call_async pode travar
+O problema do deadlock em executor single-threaded
+EXEMPLO — NÃO EXECUTAR AGORA
+Callback A
+(server)
+chama
+Serviço B
+(outro server)
+Se o Callback A usa call() (síncrono/bloqueante) e espera pela resposta do Serviço B, mas o executor single-threaded só tem UMA 
+thread — a mesma thread que precisaria processar a resposta de B está travada esperando dentro de A. Resultado: deadlock 
+permanente.
+Solução: use call_async() dentro de callbacks (como fizemos no modo_client), ou um MultiThreadedExecutor.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 53 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · BOAS PRÁTICAS
+Timeouts e serviço indisponível
+Nunca espere para sempre
+EXEMPLO — melhoria opcional, não obrigatória no TP2
+if not self.cli.wait_for_service(
+timeout_sec=3.0):
+self.get_logger().error(
+'modo_server indisponível')
+return
+future = self.cli.call_async(req)
+Por que importa
+Sem timeout, o modo_client pode ficar 
+preso indefinidamente se o modo_server 
+não estiver rodando. Sempre trate esse caso 
+no seu relatório do TP2.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 54 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · CLI
+Inspecionando o serviço
+ros2 service list — o comando de validação do TP2
+EXECUTAR AGORA NO TERMINAL
+$ ros2 service list
+/modo_server/describe_parameters
+/modo
+$ ros2 service type /modo
+std_srvs/srv/SetBool
+No TP2
+'ros2 service list' com o Server ativo deve exibir o serviço 'modo' registrado — é exatamente o critério de validação do Exercício 3.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 55 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · CLI
+Testando modo_server e modo_client
+Duas formas de chamar o serviço
+EXECUTAR AGORA NO TERMINAL
+ros2 service call
+$ ros2 service call /modo \
+std_srvs/srv/SetBool 'data: true'
+response:
+success=True
+message='Robô em modo
+autônomo ativado'
+modo_client (TP2)
+$ source ~/tp1_ws/ install/setup.bash
+$ ros2 run comunicacao_ros2 modo_client --
+true
+Robô em modo autônomo ativado
+$ ... modo_client -- false
+Robô em modo manual ativado
+Dica
+Teste primeiro com 'ros2 service call' para isolar se o problema está no Server — só depois valide pelo modo_client.py.
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 56 ---
+Checklist da Competência 2
+OK modo_server.py Server SetBool com as duas respostas exatas do TP2
+OK modo_client.py Client assíncrono lendo true/false de sys.argv
+OK spin_until_future_complete Aguardar e ler o resultado de uma chamada
+OK ros2 service list / call Inspecionar e testar o serviço 'modo' pela CLI
+Etapa 4 · Competência 2 — Serviços Client/Server
+--- Page 57 ---
+COMPETÊNCIA 2 · SERVIÇOS CLIENT/SERVER · ENCERRAMENTO
+Você está pronto para o TP2
+Com velocidade_pub.py, monitor_velocidade.py, modo_server.py e modo_client.py implementados nesta 
+etapa, os Exercícios 1, 2 e 3 do TP2 já estão cobertos. O Exercício 4 (isolamento por ROS_DOMAIN_ID=42, 
+namespace /robo1/cmd_vel e os 5 comandos de inspeção via CLI) já foi demonstrado por completo na 
+Etapa 3, Competência 1 — incluindo a falha e a correção do isolamento em dois terminais. Revise essa 
+competência antes de entregar o TP2.
+Etapa 4 · Competência 2 — Serviços Client/Server
