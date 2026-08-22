@@ -6,8 +6,8 @@ from geometry_msgs.msg import Twist
 class VelocidadePub(Node):
     def __init__(self):
         super().__init__("velocidade_pub")
-        self.pub = self.create_publisher(Twist, "/cmd_vel", 10)
-        self.create_timer(0.5, self.tick)  # 2 Hz
+        self.pub = self.create_publisher(Twist, "/robo1/cmd_vel", 10)
+        self.create_timer(0.5, self.tick)
 
     def tick(self):
         msg = Twist()
