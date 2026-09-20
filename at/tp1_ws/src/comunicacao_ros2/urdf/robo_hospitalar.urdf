@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<robot name="robo_hospitalar">
+
+  <material name="hospital_white">
+    <color rgba="0.9 0.9 0.95 1.0"/>
+  </material>
+
+  <material name="wheel_black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+
+  <material name="caster_grey">
+    <color rgba="0.3 0.3 0.3 1.0"/>
+  </material>
+
+  <!-- Base retangular do robo hospitalar: comprimento=0.4m, largura=0.3m, altura=0.15m, massa=1.0kg -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.4 0.3 0.15"/>
+      </geometry>
+      <material name="hospital_white"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.4 0.3 0.15"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.009375" ixy="0.0" ixz="0.0" iyy="0.015208" iyz="0.0" izz="0.020833"/>
+    </inertial>
+  </link>
+
+  <!-- Roda lateral esquerda: junta continua, posicao relativa x=-0.05m, y=+0.17m, z=-0.05m -->
+  <joint name="joint_roda_esq" type="continuous">
+    <parent link="base_link"/>
+    <child link="roda_esq"/>
+    <origin xyz="-0.05 0.17 -0.05" rpy="-1.57079632679 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Roda esquerda: cilindro com raio=0.05m, espessura=0.04m, massa=0.1kg -->
+  <link name="roda_esq">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.05" length="0.04"/>
+      </geometry>
+      <material name="wheel_black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.05" length="0.04"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.000076" ixy="0.0" ixz="0.0" iyy="0.000076" iyz="0.0" izz="0.000125"/>
+    </inertial>
+  </link>
+
+  <!-- Roda lateral direita: junta continua, posicao relativa x=-0.05m, y=-0.17m, z=-0.05m -->
+  <joint name="joint_roda_dir" type="continuous">
+    <parent link="base_link"/>
+    <child link="roda_dir"/>
+    <origin xyz="-0.05 -0.17 -0.05" rpy="-1.57079632679 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Roda direita: cilindro com raio=0.05m, espessura=0.04m, massa=0.1kg -->
+  <link name="roda_dir">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.05" length="0.04"/>
+      </geometry>
+      <material name="wheel_black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.05" length="0.04"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.000076" ixy="0.0" ixz="0.0" iyy="0.000076" iyz="0.0" izz="0.000125"/>
+    </inertial>
+  </link>
+
+  <!-- Roda de apoio frontal (caster): junta fixa, posicao relativa x=+0.15m, y=0.0m, z=-0.075m -->
+  <joint name="joint_roda_apoio" type="fixed">
+    <parent link="base_link"/>
+    <child link="roda_apoio"/>
+    <origin xyz="0.15 0 -0.075" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Roda de apoio frontal: esfera com raio=0.025m, massa=0.2kg -->
+  <link name="roda_apoio">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.025"/>
+      </geometry>
+      <material name="caster_grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.025"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.2"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.00005" ixy="0.0" ixz="0.0" iyy="0.00005" iyz="0.0" izz="0.00005"/>
+    </inertial>
+  </link>
+
+  <gazebo reference="base_link">
+    <material>Gazebo/White</material>
+  </gazebo>
+
+  <gazebo reference="roda_esq">
+    <material>Gazebo/FlatBlack</material>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
+
+  <gazebo reference="roda_dir">
+    <material>Gazebo/FlatBlack</material>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
+
+  <gazebo reference="roda_apoio">
+    <material>Gazebo/Grey</material>
+    <mu1>0.0</mu1>
+    <mu2>0.0</mu2>
+  </gazebo>
+
+</robot>
